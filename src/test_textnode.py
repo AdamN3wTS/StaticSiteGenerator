@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node,text_to_textnodes
 
 
 class TestTextNode(unittest.TestCase):
@@ -54,6 +54,66 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.tag, "b")
         self.assertEqual(html_node.value, "This is bold")
 
+class TestTextToTextNodes(unittest.TestCase):
+    def test_basic_text(self):
+        text = "This is plain text."
+        result = text_to_textnodes(text)
+        expected = [TextNode("This is plain text.", TextType.TEXT)]
+        self.assertEqual(result, expected)
+    
+    def test_bold_text(self):
+        text = "This is **bold** text."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" text.", TextType.TEXT),
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_mixed_markdown(self):
+        text = "Here is **bold** text, *italic* text, and a `code block`."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Here is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" text, ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text, and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(".", TextType.TEXT),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_images_and_links(self):
+        text = "An ![image](https://example.com/image.png) and a [link](https://example.com)."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("An ", TextType.TEXT),
+            TextNode("image", TextType.IMAGE, "https://example.com/image.png"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_full_example(self):
+        text = "This is **bold**, *italic*, and a `code block` with an ![image](https://example.com/image.png) and a [link](https://example.com)."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(", ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(", and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("image", TextType.IMAGE, "https://example.com/image.png"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT),
+        ]
+        self.assertEqual(result, expected)
 
 if __name__ == "__main__":
     unittest.main()
